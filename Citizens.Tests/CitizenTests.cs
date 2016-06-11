@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Citizens.Tests
 {
     [TestClass]
-    public class CitizenTests: TestsBase
+    public class CitizenTests : TestsBase
     {
         [TestMethod]
         [ExpectedException(typeof(ArgumentOutOfRangeException))]

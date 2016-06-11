@@ -2,8 +2,7 @@
 
 namespace Citizens.Tests.Helpers
 {
-    //Change to internal
-    public sealed class CitizenBuilder
+    internal sealed class CitizenBuilder
     {
         private Gender gender;
         private DateTime dateOfBirth;
