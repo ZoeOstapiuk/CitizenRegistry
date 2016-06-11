@@ -29,7 +29,6 @@ namespace Citizens
             _lastName = LastName.Transform(To.LowerCase, To.TitleCase);
             _birthDate = BirthDate.Date;
             _gender = gender;
-            //No assigning VatId because number of person in registry is unknown.
         }
 
         public DateTime BirthDate { get { return _birthDate; } }

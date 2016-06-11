@@ -66,8 +66,7 @@ namespace Citizens
 
             citizen.VatId = GetID(citizen);
             Array.Resize<ICitizen>(ref AllCitizens, AllCitizens.Length + 1);
-
-            //Cloning and creating independent reference.
+            
             AllCitizens[AllCitizens.Length - 1] = new Citizen(citizen.FirstName, citizen.LastName, citizen.BirthDate, citizen.Gender);
             AllCitizens[AllCitizens.Length - 1].VatId = citizen.VatId;
 
@@ -117,8 +116,7 @@ namespace Citizens
             }
 
             Result += (++OrdinalNumber).ToString("000");
-
-            //What digit?
+            
             Result += citizen.Gender == Gender.Female ? "0" : "1";
 
             int Sum = Convert.ToByte(Result[0]) * (-1) + Convert.ToByte(Result[1]) * 5 +
