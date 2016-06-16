@@ -9,12 +9,13 @@ namespace Citizens
 {
     public class CitizenRegistry : ICitizenRegistry
     {
-        private ICitizen[] AllCitizens;
-        private DateTime _lastRegister;
+        private readonly DateTime dateToCompare = new DateTime(1899, 12, 31);
+        private ICitizen[] allCitizens;
+        private DateTime lastRegister;
 
         public CitizenRegistry()
         {
-            AllCitizens = new ICitizen[0];
+            allCitizens = new ICitizen[0];
         }
 
         public ICitizen this[string id]
@@ -23,16 +24,10 @@ namespace Citizens
             {
                 if (String.IsNullOrWhiteSpace(id))
                 {
-                    throw new ArgumentNullException();
+                    throw new ArgumentNullException("id");
                 }
-                for (int i = 0; i < AllCitizens.Length; i++)
-                {
-                    if (AllCitizens[i].VatId == id)
-                    {
-                        return AllCitizens[i];
-                    }
-                }
-                return null;
+
+                return Array.Find<ICitizen>(allCitizens, human => human.VatId == id);
             }
         }
 
@@ -40,94 +35,121 @@ namespace Citizens
         {
             if (citizen == null)
             {
-                throw new ArgumentNullException();
+                throw new ArgumentNullException("citizen");
             }
+
             if (!String.IsNullOrWhiteSpace(citizen.VatId))
             {
-                long TryParse;
-                if (long.TryParse(citizen.VatId, out TryParse) && citizen.VatId.Length == 10)
+                long tryParseId;
+                if (long.TryParse(citizen.VatId, out tryParseId) && citizen.VatId.Length == 10)
                 {
-                    foreach (var Person in AllCitizens)
+                    if (Array.Find<ICitizen>(allCitizens, human => human.VatId == citizen.VatId) != null)
                     {
-                        if (Person.VatId == citizen.VatId)
-                        {
-                            throw new InvalidOperationException();
-                        }
+                        throw new InvalidOperationException();
                     }
-                    Array.Resize<ICitizen>(ref AllCitizens, AllCitizens.Length + 1);
-                    AllCitizens[AllCitizens.Length - 1] = new Citizen(citizen.FirstName, citizen.LastName, citizen.BirthDate, citizen.Gender);
-                    AllCitizens[AllCitizens.Length - 1].VatId = citizen.VatId;
 
-                    _lastRegister = DateTime.Now;
+                    AddCitizenToArray(citizen);
+                    lastRegister = SystemDateTime.Now();
                     return;
                 }
-                throw new InvalidOperationException();
             }
 
             citizen.VatId = GetID(citizen);
-            Array.Resize<ICitizen>(ref AllCitizens, AllCitizens.Length + 1);
-            
-            AllCitizens[AllCitizens.Length - 1] = new Citizen(citizen.FirstName, citizen.LastName, citizen.BirthDate, citizen.Gender);
-            AllCitizens[AllCitizens.Length - 1].VatId = citizen.VatId;
-
-            _lastRegister = SystemDateTime.Now();
+            AddCitizenToArray(citizen);
+            lastRegister = SystemDateTime.Now();
         }
 
         public string Stats()
         {
-            int Female = 0;
-            int Male = 0;
-            foreach (var Person in AllCitizens)
+            int female = 0;
+            int male = 0;
+            foreach (var person in allCitizens)
             {
-                if (Person.Gender == Gender.Female) Female++;
-                else Male++;
+                if (person == null)
+                {
+                    break;
+                }
+                else if (person.Gender == Gender.Female)
+                {
+                    female++;
+                }
+                else
+                {
+                    male++;
+                }
             }
 
-            if (Female == 0 && Male == 0)
+            if (female == 0 && male == 0)
             {
                 return "0 men and 0 women";
             }
-            string Result = Male.ToString() + (Male != 1 ? " men" : " man") + " and " + Female.ToString() +
-                            (Female != 1 ? " women. " : " woman. ") + "Last registration was " +
-                            _lastRegister.Humanize(dateToCompareAgainst: SystemDateTime.Now());
-            return Result;
+
+            return "man".ToQuantity(male) + " and " + "woman".ToQuantity(female)
+            + ". Last registration was " + lastRegister.Humanize(dateToCompareAgainst: SystemDateTime.Now());
         }
 
         private string GetID(ICitizen citizen)
         {
-            if (citizen == null || citizen.BirthDate == null)
+            if (citizen == null)
             {
-                throw new ArgumentException();
-            }
-            string Result = citizen.BirthDate.Subtract(new DateTime(1899, 12, 31)).TotalDays.ToString();
-            if (Result.Length < 5)
-            {
-                Result = "0" + Result;
+                throw new ArgumentNullException("citizen");
             }
 
-            int OrdinalNumber = 0;
-            foreach (var Person in AllCitizens)
+            string result = String.Format("{0:00000}", citizen.BirthDate.Subtract(dateToCompare).TotalDays);
+            int? ordinalNumber = null;
+            foreach (var person in allCitizens)
             {
-                if (Person.VatId.StartsWith(Result) &&
-                    OrdinalNumber < Convert.ToInt32(Person.VatId.Substring(6, 3)))
+                if (person == null)
                 {
-                    OrdinalNumber = Convert.ToInt32(Person.VatId.Substring(6, 3));
+                    break;
+                }
+                else if ((person.VatId.StartsWith(result) && ordinalNumber.HasValue && 
+                         ordinalNumber < Convert.ToInt32(person.VatId.Substring(6, 4))) ||
+                         (person.VatId.StartsWith(result) && !ordinalNumber.HasValue))
+                {
+                    ordinalNumber = Convert.ToInt32(person.VatId.Substring(6, 4));
                 }
             }
 
-            Result += (++OrdinalNumber).ToString("000");
-            
-            Result += citizen.Gender == Gender.Female ? "0" : "1";
+            result += String.Format("{0:0000}", ordinalNumber != null ? ordinalNumber + 2 :
+                      (citizen.Gender == Gender.Male ? 1 : 0));
+            int sum = Convert.ToByte(result[0].ToString()) * (-1) + Convert.ToByte(result[1].ToString()) * 5 +
+                      Convert.ToByte(result[2].ToString()) * 7 + Convert.ToByte(result[3].ToString()) * 9 +
+                      Convert.ToByte(result[4].ToString()) * 4 + Convert.ToByte(result[5].ToString()) * 6 +
+                      Convert.ToByte(result[6].ToString()) * 10 + Convert.ToByte(result[7].ToString()) * 5 +
+                      Convert.ToByte(result[8].ToString()) * 7;
+            result += (sum % 11) % 10;
+            return result;
+        }
 
-            int Sum = Convert.ToByte(Result[0]) * (-1) + Convert.ToByte(Result[1]) * 5 +
-                      Convert.ToByte(Result[2]) * 7 + Convert.ToByte(Result[3]) * 9 +
-                      Convert.ToByte(Result[4]) * 4 + Convert.ToByte(Result[5]) * 6 +
-                      Convert.ToByte(Result[6]) * 10 + Convert.ToByte(Result[7]) * 5 +
-                      Convert.ToByte(Result[8]) * 7;
-            Sum = (Sum % 11) % 10;
+        private void AddCitizenToArray(ICitizen citizen)
+        {
+            if (citizen == null)
+            {
+                throw new ArgumentNullException("citizen");
+            }
 
-            Result += Sum.ToString();
-            return Result;
+            if (allCitizens.Length == 0)
+            {
+                Array.Resize<ICitizen>(ref allCitizens, 1);
+            }
+
+            ICitizen current;
+            for (int i = 0; i < allCitizens.Length; i++)
+            {
+                if (allCitizens[i] == null)
+                {
+                    current = new Citizen(citizen.FirstName, citizen.LastName, citizen.BirthDate, citizen.Gender);
+                    current.VatId = citizen.VatId;
+                    allCitizens[i] = current;
+                    return;
+                }
+            }
+
+            Array.Resize<ICitizen>(ref allCitizens, allCitizens.Length * 2);
+            current = new Citizen(citizen.FirstName, citizen.LastName, citizen.BirthDate, citizen.Gender);
+            current.VatId = citizen.VatId;
+            allCitizens[allCitizens.Length / 2] = current;
         }
     }
 }

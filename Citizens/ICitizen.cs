@@ -2,7 +2,7 @@
 
 namespace Citizens
 {
-    public interface ICitizen 
+    public interface ICitizen
     {
         string FirstName { get; }
         string LastName { get; }

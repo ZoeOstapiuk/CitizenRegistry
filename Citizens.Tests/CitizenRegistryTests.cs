@@ -41,6 +41,31 @@
             Assert.IsFalse(String.IsNullOrWhiteSpace(citizen.VatId));
         }
         
+        // New test:
+        [TestMethod]
+        public void Register_ForCitizenWithDate_AssingsValidVatId()
+        {
+            ICitizen citizen = new Citizen("Zoe", "Ostapiuk", new DateTime(1998, 3, 30), Gender.Female);
+            registry.Register(citizen);
+
+            Assert.AreEqual("3588300008", citizen.VatId);
+        }
+
+        // New test:
+        public void Register_ForCitizenWithUsedBirthDate_AssignsValidVatID()
+        {
+            ICitizen citizen;
+            for (int i = 0; i < 10; i++)
+            {
+                citizen = new Citizen("Zoe", "Ostapiuk", new DateTime(1998, 3, 30), Gender.Female);
+                registry.Register(citizen);
+            }
+            citizen = new Citizen("Zoe", "Ostapiuk", new DateTime(1998, 3, 30), Gender.Female);
+            registry.Register(citizen);
+
+            Assert.AreEqual("3588300228", citizen.VatId);
+        }
+
         [TestMethod]
         public void Register_ForCitizenWithEmptyVatId_AssignsVatIdBasedOnBirthDate()
         {

@@ -38,5 +38,37 @@ namespace Citizens.Tests
 
             Assert.AreEqual(dateOnly, citizen.BirthDate);
         }
+
+        // New test:
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void Constructor_WithNullReferenceFirstName_ThrowsArgumentNullException()
+        {
+            var citizen = new Citizen(null, "Smith", SystemDateTime.Now(), Gender.Male);
+        }
+
+        // New test:
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void Constructor_WithEmptyFirstName_ThrowsArgumentNullException()
+        {
+            var citizen = new Citizen("", "Smith", SystemDateTime.Now(), Gender.Male);
+        }
+
+        // New test:
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void Constructor_WithNullReferenceLastName_ThrowsArgumentNullException()
+        {
+            var citizen = new Citizen("John", null, SystemDateTime.Now(), Gender.Male);
+        }
+
+        // New test:
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void Constructor_WithEmptyLastName_ThrowsArgumentNullException()
+        {
+            var citizen = new Citizen("John", "", SystemDateTime.Now(), Gender.Male);
+        }
     }
 }

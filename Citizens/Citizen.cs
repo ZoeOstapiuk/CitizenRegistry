@@ -9,40 +9,47 @@ namespace Citizens
 {
     public class Citizen : ICitizen
     {
-        private DateTime _birthDate;
-        private string _firstName;
-        private string _lastName;
-        private Gender _gender;
-        private string _vatId;
+        private DateTime birthDate;
+        private string firstName;
+        private string lastName;
+        private Gender gender;
 
-        public Citizen(string FirstName, string LastName, DateTime BirthDate, Gender gender)
+        public Citizen(string firstName, string lastName, DateTime birthDate, Gender gender)
         {
-            if (BirthDate > SystemDateTime.Now())
+            if (birthDate > SystemDateTime.Now())
             {
-                throw new ArgumentException();
+                throw new ArgumentException("BirthDate");
             }
-            if ((int)gender > 1 || (int)gender < 0)
+
+            if (!Enum.IsDefined(typeof(Gender), gender))
             {
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException("Gender");
             }
-            _firstName = FirstName.Transform(To.LowerCase, To.TitleCase);
-            _lastName = LastName.Transform(To.LowerCase, To.TitleCase);
-            _birthDate = BirthDate.Date;
-            _gender = gender;
+
+            if (String.IsNullOrWhiteSpace(firstName))
+            {
+                throw new ArgumentNullException("FirstName");
+            }
+
+            if (String.IsNullOrWhiteSpace(lastName))
+            {
+                throw new ArgumentNullException("LastName");
+            }
+
+            this.firstName = firstName.Transform(To.LowerCase, To.TitleCase);
+            this.lastName = lastName.Transform(To.LowerCase, To.TitleCase);
+            this.birthDate = birthDate.Date;
+            this.gender = gender;
         }
 
-        public DateTime BirthDate { get { return _birthDate; } }
+        public DateTime BirthDate { get { return birthDate; } }
 
-        public string FirstName { get { return _firstName; } }
+        public string FirstName { get { return firstName; } }
 
-        public Gender Gender { get { return _gender; } }
+        public Gender Gender { get { return gender; } }
 
-        public string LastName { get { return _lastName; } }
+        public string LastName { get { return lastName; } }
 
-        public string VatId
-        {
-            get { return _vatId; }
-            set { _vatId = value; }
-        }
+        public string VatId { get; set; }
     }
 }
